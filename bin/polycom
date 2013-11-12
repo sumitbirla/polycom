@@ -1,0 +1,103 @@
+#!/usr/bin/env ruby
+
+require 'polycom/pusher'
+require 'polycom/poller'
+require 'polycom/receiver'
+
+
+def print_help
+  help_message =<<-EOF
+	 
+Usage: polycom user:pass@1.2.3.4 [options]
+
+Options:
+  -i      Fetches device, network and active call information from the phone
+  -n      Prints notifications from the phone
+  -data   Pushes specified DATA to phone
+  -url    Pushes specified URL to phone    
+
+	  
+Examples:  
+  polycom admin:456@192.168.1.2 -i
+  polycom admin:456@192.168.1.2 -data critical "Hello World!"
+           
+           
+	EOF
+	puts help_message
+end
+
+
+if ARGV.length < 2
+	print_help
+	exit -1
+end
+
+
+tokens = ARGV[0].split('@')
+ip_address = tokens[1]
+user = tokens[0].split(':')[0]
+pass = tokens[0].split(':')[1]
+cmd = ARGV[1]
+
+if ["-data", "-url"].include?(cmd) && ARGV.length < 4
+  print_help
+  exit -1
+end
+
+priority = ARGV[2]
+data = ARGV[3]
+
+
+case cmd
+when "-data"
+  pusher = Polycom::Pusher.new(:username => user, :password => pass, :ip_address => ip_address)
+	pusher.send(:priority => priority, :data => data)
+	
+when "-url"
+  pusher = Polycom::Pusher.new(:username => user, :password => pass, :ip_address => ip_address)
+	pusher.send(:priority => priority, :url => data)
+	
+when "-i"
+  poller = Polycom::Poller.new(
+							:username => user,
+							:password => pass,
+							:ip_address => ip_address
+							)
+	device_info = poller.device_information
+	network_info = poller.network_information
+	call_line_info = poller.call_line_info
+
+	puts "\nDevice Information\n--------------------"
+	device_info.each_pair { |key, val| puts "  #{key.to_s.ljust(20)}:\t #{val}" }
+	puts "\n"
+
+	puts "\nNetwork Information\n--------------------"
+	network_info.each_pair { |key, val| puts "  #{key.to_s.ljust(20)}:\t #{val}" }
+	puts "\n"
+
+	puts "\nCall Line Information\n-----------------------"	
+	call_line_info.each do |line|
+		puts '  -'
+		line.each_pair do |key, val|
+		  if key.to_s == 'call_info'
+		    puts "\n  call_info:"
+		    val.each_pair { |key, val| puts "      #{key.to_s.ljust(20)}:\t #{val}" }
+		  else 
+		    puts "  #{key.to_s.ljust(20)}:\t #{val}"
+		  end
+		end
+		puts '  -'
+	end
+
+when "-n"
+  ip = Socket.ip_address_list.find {|a| !a.ipv4_loopback?}
+
+	puts "\n\nIMPORTANT:\nSet up your Polycom phone to send 'Telephony Event Notification' to http://#{ip.ip_address}:4567.\nPlease CRTL-C to end this script.\n\n"
+	Polycom::Receiver.run!
+
+else
+  puts "ERROR: Unknown command switch"
+  	
+end
+
+
