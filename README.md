@@ -1,9 +1,9 @@
 # Polycom
 
-This gem is used to communicating with IP Polycom phones which expose a web api.  It was tested with 
-Polycom VVX 400 and 410 phones.
+This gem is used for communicating with IP Polycom phones using their XML application interface.  It was tested with 
+the following phones:
 
-http://www.polycom.com/products-services/voice/desktop-solutions/realpresence-desktop-vvx-business-media-phones/vvx-400-410.html
+* Polycom VVX 410
 
 However, this gem should work with other phones as well.  
 
@@ -54,7 +54,7 @@ This class is used for pushing HTML data or URL to the phone.
 			:password => '456', 
 			:ip_address => '10.0.5.7' )
 
-  pusher.send(:priority => :important, :data => "Hello NSA\!")
+  pusher.send(:priority => :important, :data => "Hello NSA!")
   pusher.send(:priority => :important, :url => "/index.html")
 ```
 
