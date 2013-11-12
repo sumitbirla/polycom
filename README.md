@@ -122,8 +122,8 @@ phone's configuration.  The URL you send will be appended to this value.
 #### Receiving notifications from the phone
 
 This requires you to configure `apps.telNotification.URL` in the 
-phones configuration to the URL printed upon running this commant.  polycom somes with a built in web 
-server to received and print notifications.
+phones configuration to send notification to your computer.  The `polycom` utility comes with a built-in web 
+server (sinatra) to receive and pretty-print notifications from your phone.
 
 <pre>
 
